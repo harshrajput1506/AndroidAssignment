@@ -9,9 +9,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -45,7 +48,9 @@ fun AppNavigation(
         }
         composable("item_detail/{itemId}") { backStackEntry ->
             val itemId = backStackEntry.arguments?.getString("itemId")
-            ItemDetailScreen(itemId = itemId)
+            ItemDetailScreen(itemId = itemId) {
+                navigate.value = ""
+            }
         }
     }
 }
@@ -58,6 +63,7 @@ fun ItemListScreen(
     navController: NavHostController
 ) {
     val items = viewModel.listStringData.collectAsState()
+    var searchValue : MutableState<String> = remember { mutableStateOf("") }
 
     if (navigate.value.isNotBlank()) {
         val currRoute = navController.currentDestination?.route.orEmpty()
@@ -65,19 +71,36 @@ fun ItemListScreen(
             navController.navigate("item_detail/${navigate.value}")
         }
     }
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        items(items.value) { item ->
-            ItemCard(
-                item = item,
-                onClick = { onNavigateToDetail(item.id) }
-            )
-            Spacer(modifier = Modifier.height(8.dp))
+    Column {
+        Spacer(Modifier.height(16.dp))
+
+        OutlinedTextField(
+            value = searchValue.value,
+            label = { Text("Search Here") },
+            onValueChange = {
+                searchValue.value = it
+                viewModel.search(it)
+                            }
+        )
+
+        Spacer(Modifier.height(16.dp))
+
+
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+        ) {
+            items(items.value) { item ->
+                ItemCard(
+                    item = item,
+                    onClick = { onNavigateToDetail(item.id) }
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+            }
         }
     }
+
 }
 
 @Composable
@@ -90,13 +113,22 @@ fun ItemCard(item: ComputerItem, onClick: () -> Unit) {
     ) {
         Text(text = item.name, fontWeight = FontWeight.Bold)
         item.data?.color?.let { Text(text = "Color : $it") }
+        item.data?.color1?.let { Text(text = "Color : $it") }
+        item.data?.capacity?.let { Text(text = "Capacity : $it") }
+        item.data?.capacity1?.let { Text(text = "Capacity : $it") }
+        item.data?.price?.let { Text(text = "Price : $it") }
+        item.data?.price1?.let { Text(text = "Price : $it") }
+        item.data?.description?.let { Text(text = "Description : $it") }
     }
 }
 
 @Composable
-fun ItemDetailScreen(itemId: String?) {
+fun ItemDetailScreen(itemId: String?, onChangeNavigate : () -> Unit) {
     // Fetch the item details based on the itemId
     // Here, you can fetch it from the ViewModel or repository
+    LaunchedEffect(Unit) {
+        onChangeNavigate()
+    }
     Text(
         text = "Item Details for ID: $itemId",
         modifier = Modifier

@@ -37,4 +37,16 @@ class JarViewModel : ViewModel() {
 
         }
     }
+
+    fun search(query : String){
+        val filteredList = _listStringData.value
+
+        if(query.isNotBlank()){
+           filteredList.find {
+               it.name.contains(query)
+           }
+
+            _listStringData.value = filteredList
+        }
+    }
 }
