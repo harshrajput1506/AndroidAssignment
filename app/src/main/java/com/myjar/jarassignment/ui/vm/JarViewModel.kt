@@ -39,14 +39,15 @@ class JarViewModel : ViewModel() {
     }
 
     fun search(query : String){
-        val filteredList = _listStringData.value
+        var filteredList = _listStringData.value
+        var tempList = mutableListOf<ComputerItem>()
 
         if(query.isNotBlank()){
-           filteredList.find {
-               it.name.contains(query)
+           filteredList.forEach {
+               if(it.name.contains(query)) tempList.add(it)
            }
 
-            _listStringData.value = filteredList
+            _listStringData.value = tempList
         }
     }
 }
